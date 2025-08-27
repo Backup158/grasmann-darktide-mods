@@ -196,7 +196,12 @@ ScoreboardHistoryView._setup_category_config = function(self, scan_dir)
                 mission_subname = "\n"..category_config.timer
             end
             if category_config.mission_challenge ~= "" then
-                local mission_challenge = Danger[tonumber(category_config.mission_challenge)]
+                local danger_index = tonumber(category_config.mission_challenge)
+                -- Auric and Damnation are both challenge = 5
+                if not category_config.mission_challenge == "auric" then
+                    danger_index = danger_index - 1
+                end
+                local mission_challenge = Danger[danger_index]
                 if mission_challenge then
                     if mission_subname == "" then
                         mission_subname = "\n"..Localize(mission_challenge.display_name)
