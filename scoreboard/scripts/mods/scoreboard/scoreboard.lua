@@ -174,8 +174,8 @@ end
 mod.set_mission_circumstance = function(self, mission_circumstance)
 	self.mission_circumstance = mission_circumstance
 end
-mod.set_mission_challenge = function(self, mission_challenge)
-	self.mission_challenge = mission_challenge
+mod.set_mission_resistance = function(self, mission_resistance)
+	self.mission_resistance = mission_resistance
 end
 mod.set_victory_defeat = function(self, victory_defeat)
 	self.victory_defeat = victory_defeat
@@ -349,7 +349,7 @@ mod:hook(CLASS.StateGameplay, "on_enter", function(func, self, parent, params, c
 	func(self, parent, params, creation_context, ...)
 	mod:set_mission_name(params.mission_name)
 	mod:set_mission_circumstance(params.mechanism_data.circumstance_name)
-	mod:set_mission_challenge(params.mechanism_data.challenge)
+	mod:set_mission_resistance(params.mechanism_data.resistance)
 	mod:initialize_timer()
 end)
 
