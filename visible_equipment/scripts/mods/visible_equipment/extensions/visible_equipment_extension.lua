@@ -56,6 +56,7 @@ local VisibleEquipmentExtension = class("VisibleEquipmentExtension")
     local quaternion_box = QuaternionBox
     local math_ease_sine = math.ease_sine
     local table_contains = table.contains
+    local math_ease_cubic = math.easeCubic
     local unit_world_pose = unit.world_pose
     local world_link_unit = world.link_unit
     local quaternion_lerp = quaternion.lerp
@@ -81,6 +82,7 @@ local VisibleEquipmentExtension = class("VisibleEquipmentExtension")
     local unit_set_local_position = unit.set_local_position
     local unit_set_local_rotation = unit.set_local_rotation
     local unit_set_unit_visibility = unit.set_unit_visibility
+    local script_unit_has_extension = script_unit.has_extension
 --#endregion
 
 -- ##### ┌┬┐┌─┐┌┬┐┌─┐ #################################################################################################
@@ -404,7 +406,7 @@ VisibleEquipmentExtension.unwield_slot = function(self, slot)
         self.sheathed[slot] = true
         self.sheathing[slot] = true
         -- Animate
-        self:animate_equipment(slot, "sheath", 10)
+        self:animate_equipment(slot, "sheath", 5)
         -- Sound
         self:play_equipment_sound(slot, "accent")
     end
@@ -574,7 +576,7 @@ VisibleEquipmentExtension.slot_offset = function(self, obj, slot)
     return offset, backpack_values
 end
 
-mod.last_backpack = nil
+-- mod.last_backpack = nil
 VisibleEquipmentExtension.position_slot_objects = function(self, slot, apply_center_mass_offset)
     -- Iterate through objects
     for index, obj in pairs(self.objects[slot]) do
@@ -655,6 +657,16 @@ VisibleEquipmentExtension.update_item_visibility = function(self, equipment, wie
     -- Set wielded slot
     self.wielded_slot = wielded_slot
     local showing_shield = false
+    -- Get a fresh reference to player visibility component
+    -- if we save it we don't know when it is destroyed
+    local player_visibility = script_unit_has_extension(self.unit, "player_visibility_system")
+    local player_invisible = player_visibility and not player_visibility:visible()
+    local in_first_person = self.first_person_extension and self.first_person_extension:is_in_first_person_mode()
+    -- Check wielded slot
+    local active_slot = equipment[wielded_slot]
+    local unit_3p = active_slot and active_slot.unit_3p
+    local attachments_by_name = active_slot and active_slot.attachment_map_by_unit_3p
+    local item_attachments_by_name = attachments_by_name and attachments_by_name[unit_3p]
     -- Iterate through equipment
     for slot_name, slot in pairs(equipment) do
         -- Check if slot should be processed
@@ -664,8 +676,8 @@ VisibleEquipmentExtension.update_item_visibility = function(self, equipment, wie
                 -- Hidden?
                 local old_value = self.visible[slot]
                 self.visible[slot] = (slot_name ~= wielded_slot and true) or false
-                local player_invisible = self.player_visibility and not self.player_visibility.__destroyed and not self.player_visibility:visible()
-                local in_first_person = self.first_person_extension and self.first_person_extension:is_in_first_person_mode()
+                -- local player_invisible = self.player_visibility and not self.player_visibility._destroyed and not self.player_visibility:visible()
+                -- local in_first_person = self.first_person_extension and self.first_person_extension:is_in_first_person_mode()
                 if player_invisible or in_first_person then self.visible[slot] = false end
                 -- Iterate through objects
                 for index, obj in pairs(self.objects[slot]) do
@@ -676,11 +688,11 @@ VisibleEquipmentExtension.update_item_visibility = function(self, equipment, wie
                         if showing_shield then unit_set_unit_visibility(obj, false, true) end
                         showing_shield = true
                     elseif self.shield_visibility == "one_visible" and name == "left" and self.visible[slot] then
-                        -- Check wielded slot
-                        local active_slot = equipment[wielded_slot]
-                        local unit_3p = active_slot and active_slot.unit_3p
-                        local attachments_by_name = active_slot and active_slot.attachment_map_by_unit_3p
-                        local item_attachments_by_name = attachments_by_name and attachments_by_name[unit_3p]
+                        -- -- Check wielded slot
+                        -- local active_slot = equipment[wielded_slot]
+                        -- local unit_3p = active_slot and active_slot.unit_3p
+                        -- local attachments_by_name = active_slot and active_slot.attachment_map_by_unit_3p
+                        -- local item_attachments_by_name = attachments_by_name and attachments_by_name[unit_3p]
                         -- If shield is currently wielded or is already showing; don't show
                         if showing_shield or (item_attachments_by_name and table_find(item_attachments_by_name, "left")) then unit_set_unit_visibility(obj, false, true) end
                         showing_shield = true
@@ -766,7 +778,7 @@ VisibleEquipmentExtension.play_equipment_slot_sound = function(self, slot, effec
             end
         end
         -- Testing
-        group = group or "sfx_ads_up"
+        -- group = group or "sfx_ads_up"
         local sound = player_character_sound_event_aliases[group].events[weapon_template] or
             player_character_sound_event_aliases[group].events.default
         -- Check sound and extension
@@ -775,6 +787,10 @@ VisibleEquipmentExtension.play_equipment_slot_sound = function(self, slot, effec
             local husk = player_character_sound_event_aliases[group].has_husk_events
             local move_speed = self.locomotion_extension and self.locomotion_extension:move_speed() or 1
             self.fx_extension:trigger_wwise_event(sound, husk, true, self.unit, 1, "foley_speed", move_speed)
+        end
+
+        if not self.animations then
+            self.sheathing[slot] = nil
         end
     end
 end
@@ -978,6 +994,7 @@ VisibleEquipmentExtension.update_animation = function(self, dt, t, slot)
             -- Get interval
             local states = anim.current[obj].states
             local interval = anim.current[obj].interval or self:footstep_interval(slot) / states --anim.interval[obj] / states
+            -- if self.sheathing[slot] then interval = 2 end
             -- local interval = anim.interval[obj] / states
             -- Get state
             local state = anim.state[obj]
@@ -993,6 +1010,8 @@ VisibleEquipmentExtension.update_animation = function(self, dt, t, slot)
                 anim.end_position[obj] = state.end_position
                 anim.end_rotation[obj] = state.end_rotation
 
+                -- self.sheathing[slot] = nil
+
             -- Check state is not valid
             elseif not state then
                 -- Reset animation
@@ -1007,7 +1026,7 @@ VisibleEquipmentExtension.update_animation = function(self, dt, t, slot)
                 self.sheathing[slot] = nil
                 -- Calculate progress
                 local progress = ((anim.started[obj] + interval) - t) / interval
-                local anim_progress = math_ease_sine(1 - progress)
+                local anim_progress = math_ease_cubic(1 - progress)
                 -- Get move speed multiplier
                 local move_speed = self.locomotion_extension and self.locomotion_extension:move_speed() or 1
                 -- Get foot multiplier
