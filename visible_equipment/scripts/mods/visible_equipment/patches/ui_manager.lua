@@ -29,6 +29,22 @@ local MasterItems = mod:original_require("scripts/backend/master_items")
 -- ##### ├┤ │ │││││   │ ││ ││││  ├─┤│ ││ │├┴┐└─┐ ######################################################################
 -- ##### └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘  ┴ ┴└─┘└─┘┴ ┴└─┘ ######################################################################
 
+mod:hook(CLASS.UIManager, "item_icon_updated", function(func, self, item, ...)
+    local me = mod:me()
+    -- local equipemt_component = mod:equipment_component_from_unit(me)
+
+	-- Get equipment component
+    local equipment_component = mod:equipment_component_from_unit(me)
+    -- Check visible equipment system
+    if equipment_component and equipment_component.visible_equipment_system then
+        -- Load slot
+        equipment_component.visible_equipment_system:item_attachments_updated(item)
+    end
+
+    -- Original function
+    func(self, item, ...)
+end)
+
 mod:hook(CLASS.UIManager, "load_item_icon", function(func, self, real_item, cb, render_context, dummy_profile, prioritize, unload_cb, ...)
 
     local item_name = real_item.name
@@ -59,6 +75,8 @@ mod:hook(CLASS.UIManager, "load_item_icon", function(func, self, real_item, cb, 
 
 		dummy_profile = Items.create_mannequin_profile_by_item(real_item, gender_name, archetype_name, breed_name)
         
+		-- dummy_profile.loadout.slot_primary = profile.loadout.slot_primary
+		-- dummy_profile.loadout.slot_secondary = profile.loadout.slot_secondary
 		-- Copy profile loadout
 		dummy_profile.loadout.slot_body_face_tattoo = profile.loadout.slot_body_face_tattoo
 		dummy_profile.loadout.slot_body_hair_color = profile.loadout.slot_body_hair_color
