@@ -5,20 +5,25 @@ local mod = get_mod("extended_weapon_customization")
 -- ##### ┴└─└─┘└─┘└└─┘┴┴└─└─┘ #########################################################################################
 
 local FixedFrame = mod:original_require("scripts/utilities/fixed_frame")
+local master_items = mod:original_require("scripts/backend/master_items")
 
 -- ##### ┌─┐┌─┐┬─┐┌─┐┌─┐┬─┐┌┬┐┌─┐┌┐┌┌─┐┌─┐ ############################################################################
 -- ##### ├─┘├┤ ├┬┘├┤ │ │├┬┘│││├─┤││││  ├┤  ############################################################################
 -- ##### ┴  └─┘┴└─└  └─┘┴└─┴ ┴┴ ┴┘└┘└─┘└─┘ ############################################################################
 -- #region Performance
     local type = type
+    local math = math
     local pairs = pairs
     local table = table
     local managers = Managers
+    local table_size = table.size
     local table_find = table.find
     local script_unit = ScriptUnit
+    local math_random = math.random
     local table_contains = table.contains
     local table_clone_safe = table.clone_safe
     local script_unit_extension = script_unit.extension
+    local table_clone_instance_safe = table.clone_instance_safe
 --#endregion
 
 -- ##### ┌┬┐┌─┐┌┬┐┌─┐ #################################################################################################
@@ -26,6 +31,8 @@ local FixedFrame = mod:original_require("scripts/utilities/fixed_frame")
 -- ##### ─┴┘┴ ┴ ┴ ┴ ┴ #################################################################################################
 
 local PROCESS_SLOTS = {"WEAPON_SKIN", "WEAPON_MELEE", "WEAPON_RANGED"}
+local _item = "content/items/weapons/player"
+local _item_empty_trinket = _item.."/trinkets/unused_trinket"
 
 -- ##### ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐ ####################################################################################
 -- ##### ├┤ │ │││││   │ ││ ││││└─┐ ####################################################################################
@@ -114,30 +121,127 @@ mod.fetch_attachment_data = function(self, attachments, target_slot)
     return attachment_item_data
 end
 
+mod.fetch_attachment_slots = function(self, attachments, attachment_slots)
+    local attachment_slots = attachment_slots or {}
+    for slot, data in pairs(attachments) do
+        attachment_slots[slot] = data
+        if data.children then
+            self:fetch_attachment_slots(data.children, attachment_slots)
+        end
+    end
+    return attachment_slots
+end
+
+mod.reset_item = function(self, item_data)
+    -- Create mod item
+    -- local item_data = self:create_mod_item(item_data)
+
+    local item = item_data and (item_data.__is_ui_item_preview and item_data.__data) or item_data
+    local attachment_slots = self:fetch_attachment_slots(item.attachments)
+    local original_item = master_items.get_item(item.name)
+    -- local gear_id = self:gear_id(item)
+    -- if gear_id then
+        for attachment_slot, data in pairs(attachment_slots) do
+            local original_attachment = self:fetch_attachment(original_item.attachments, attachment_slot) or _item_empty_trinket
+            self:overwrite_attachment(item.attachments, attachment_slot, original_attachment)
+        end
+    -- end
+end
+
+mod.randomize_item = function(self, item_data)
+    -- Create mod item
+    -- local item_data = self:create_mod_item(item_data)
+
+    local item = item_data and (item_data.__is_ui_item_preview and item_data.__data) or item_data
+    -- local is_ui_item_preview = item_data.__is_ui_item_preview
+    -- local is_preview_item = item_data.__is_preview_item
+    -- local is_in_customization_menu = self.is_in_customization_menu
+    -- local customization_menu_slot_name = self.customization_menu_slot_name
+
+    -- local gear_id = self:gear_id(item)
+    -- if gear_id then
+        local new_gear_settings = {}
+        local attachment_slots = self:fetch_attachment_slots(item.attachments)
+
+        for attachment_slot, data in pairs(attachment_slots) do
+            local attachments = self.settings.attachments[item.weapon_template]
+            local slot_attachments = attachments and attachments[attachment_slot]
+            if slot_attachments then
+
+                local num_attachments = table_size(slot_attachments)
+                local rnd = math_random(1, num_attachments)
+                
+                local i, selected_data = 1, nil
+                for attachment_name, attachment_data in pairs(slot_attachments) do
+                    if i == rnd then
+                        selected_data = attachment_data
+                        break
+                    end
+                    i = i + 1
+                end
+
+                if selected_data then
+                    self:overwrite_attachment(item.attachments, attachment_slot, selected_data.replacement_path)
+                    new_gear_settings[attachment_slot] = selected_data.replacement_path
+                end
+
+            end
+        end
+
+        -- self:gear_settings(gear_id, new_gear_settings, optional_save_to_file)
+        return new_gear_settings
+    -- end
+end
+
+mod.mod_item = function(self, item_data, fake_gear_id)
+    local pt = self:pt()
+    local item = item_data and (item_data.__is_ui_item_preview and item_data.__data) or item_data
+    local item_type = item and item.item_type
+    if table_contains(PROCESS_SLOTS, item_type) and item.attachments then
+        local gear_id = self:gear_id(item, fake_gear_id)
+        if gear_id and not pt.items[gear_id] then
+            pt.items[gear_id] = table_clone_instance_safe(item_data)
+        end
+        return gear_id and pt.items[gear_id]
+    end
+    return item_data
+end
+
 mod.modify_item = function(self, item_data, fake_gear_id, optional_settings)
-    local item = item_data and (item_data.__is_ui_item_preview and item_data.__data) or item_data --item_data.__master_item or item_data
+    -- Create mod item
+    -- local item_data = self:create_mod_item(item_data)
+    -- Get item info
+    local item = item_data and (item_data.__is_ui_item_preview and item_data.__data) or item_data
     local item_type = item_data and item_data.item_type
-    -- if item_type == "WEAPON_MELEE" or item_type == "WEAPON_RANGED" and item.attachments then
+    -- Check supported item type
     if table_contains(PROCESS_SLOTS, item_type) and item.attachments then
         local pt = mod:pt()
 
+        -- Inject custom attachments
         local weapon_template = item.weapon_template
         local custom_attachment_slots = weapon_template and self.settings.attachment_slots[weapon_template]
         if custom_attachment_slots then
+            -- Iterate through custom attachment slots
             for slot_name, inject_data in pairs(custom_attachment_slots) do
                 -- Check if attachment slot exists
                 if not self:fetch_attachment(item.attachments, slot_name) then
+                    -- Inject attachment
                     self:inject_attachment(item.attachments, slot_name, inject_data)
                 end
             end
         end
 
+        -- Overwrite attachments
         local gear_id = mod:gear_id(item, fake_gear_id)
         local gear_settings = optional_settings or gear_id and mod:gear_settings(gear_id)
         if gear_settings then
+            -- Iterate through gear settings
             for slot, replacement_path in pairs(gear_settings) do
+                -- Overwrite attachment
                 mod:overwrite_attachment(item.attachments, slot, replacement_path)
             end
+        else
+            -- self:randomize_item(item_data, optional_settings)
         end
 
     end
@@ -159,11 +263,25 @@ end
 
 -- Redo weapon attachments by unequipping and reequipping weapon
 mod.redo_weapon_attachments = function(self, item)
+    -- Get info
     local me = mod:me()
     local slot_name = item and item.slots[1]
+    -- Get visual loadout extension
     local visual_loadout_extension = script_unit_extension(me, "visual_loadout_system")
 	if slot_name and visual_loadout_extension then
-        visual_loadout_extension:unequip_item_from_slot(slot_name, FixedFrame.get_latest_fixed_time())
-        visual_loadout_extension:equip_item_to_slot(item, slot_name, nil, self:time())
+        -- Current item
+        local current_item = visual_loadout_extension:item_from_slot(slot_name)
+        -- Check if same item
+        if self:gear_id(current_item) == self:gear_id(item) then
+            -- Unequip item
+            visual_loadout_extension:unequip_item_from_slot(slot_name, FixedFrame.get_latest_fixed_time())
+            -- Reequip item
+            visual_loadout_extension:equip_item_to_slot(item, slot_name, nil, self:time())
+        end
+    end
+    -- Relay weapon reload to sight extension
+    local sight_extension = script_unit_extension(me, "sight_system")
+    if sight_extension then
+        sight_extension:on_equip_weapon()
     end
 end
