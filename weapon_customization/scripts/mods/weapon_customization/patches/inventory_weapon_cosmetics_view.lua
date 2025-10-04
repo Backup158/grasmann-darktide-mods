@@ -2843,10 +2843,6 @@ mod:hook_require("scripts/ui/views/inventory_weapon_cosmetics_view/inventory_wea
 	instance.custom_update = function(self, input_service, dt, t)
 		-- Set ui weapon spawner rotation input
 		local ui_weapon_spawner = self:ui_weapon_spawner()
-		if not ui_weapon_spawner then
-			mod:error("ui weapon spawner not found in custom update!")
-			return
-		end
 		ui_weapon_spawner._rotation_input_disabled = self:is_busy()
 		-- Update custom widgets
 		self:update_custom_widgets(input_service, dt, t)
@@ -3152,19 +3148,35 @@ mod:hook(CLASS.InventoryWeaponCosmeticsView, "cb_on_equip_pressed", function(fun
 end)
 
 --[[
-mod:hook(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(func, self, content, ...)
+mod:hook(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(func, self, ...)
 
 	-- Add custom tab
-	self:add_custom_tab(content)
+	self._tabs_content = self:add_custom_tab(self._tabs_content)
 
 	-- Original function
-	func(self, content, ...)
+	func(self, ...)
+
+	table.dump(self._tabs_content, "TABS_CONTENT AFTER INSERTION", 10)
 
 end)
 ]]
+
 mod:hook_safe(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(self, ...)
 	-- Add custom tab
 	self:add_custom_tab(self._tabs_content)
+
+	-- Manually adding this shit
+	local i = #self._tabs_content
+	--mod:echo(tostring(i))
+	local tab_content = self._tabs_content[i]
+	local display_name = tab_content.display_name
+	local display_icon = tab_content.icon
+	local pressed_callback = callback(self, "cb_switch_tab", i)
+	local tab_id = self._tab_menu_element:add_entry(display_name, pressed_callback, tab_button_template, display_icon)
+	self._tab_ids[i] = tab_id
+
+	--table.dump(self._tabs_content, "TABS_CONTENT AFTER INSERTION", 10)
+	
 end)
 
 
