@@ -2645,7 +2645,7 @@ mod:hook_require("scripts/ui/views/inventory_weapon_cosmetics_view/inventory_wea
 		-- Check item name and attachment
 		if self._item_name and mod.attachment[self._item_name] then
 			-- Add tab
-			content[3] = {
+			content[#content + 1] = {
 				display_name = "loc_weapon_cosmetics_customization",
 				slot_name = "slot_weapon_skin_ewc",
 				item_type = "WEAPON_SKIN",
@@ -2843,6 +2843,10 @@ mod:hook_require("scripts/ui/views/inventory_weapon_cosmetics_view/inventory_wea
 	instance.custom_update = function(self, input_service, dt, t)
 		-- Set ui weapon spawner rotation input
 		local ui_weapon_spawner = self:ui_weapon_spawner()
+		if not ui_weapon_spawner then
+			mod:error("ui weapon spawner not found in custom update!")
+			return
+		end
 		ui_weapon_spawner._rotation_input_disabled = self:is_busy()
 		-- Update custom widgets
 		self:update_custom_widgets(input_service, dt, t)
@@ -3147,6 +3151,7 @@ mod:hook(CLASS.InventoryWeaponCosmeticsView, "cb_on_equip_pressed", function(fun
 	end
 end)
 
+--[[
 mod:hook(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(func, self, content, ...)
 
 	-- Add custom tab
@@ -3156,6 +3161,12 @@ mod:hook(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(func, 
 	func(self, content, ...)
 
 end)
+]]
+mod:hook_safe(CLASS.InventoryWeaponCosmeticsView, "_setup_menu_tabs", function(self, ...)
+	-- Add custom tab
+	self:add_custom_tab(self._tabs_content)
+end)
+
 
 mod:hook(CLASS.InventoryWeaponCosmeticsView, "cb_switch_tab", function(func, self, index, ...)
 
