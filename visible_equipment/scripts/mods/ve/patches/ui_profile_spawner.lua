@@ -15,29 +15,18 @@ local ScriptWorld = mod:original_require("scripts/foundation/utilities/script_wo
     local CLASS = CLASS
     local actor = Actor
     local world = World
-    local table = table
     local string = string
     local vector3 = Vector3
     local managers = Managers
     local tostring = tostring
-    local table_size = table.size
     local actor_unit = actor.unit
-    local quaternion = Quaternion
-    local vector3_box = Vector3Box
     local string_gsub = string.gsub
     local string_find = string.find
-    local table_remove = table.remove
-    local vector3_zero = vector3.zero
     local physics_world = PhysicsWorld
-    local vector3_unbox = vector3_box.unbox
     local world_unlink_unit = world.unlink_unit
-    local quaternion_identity = quaternion.identity
+    local unit_local_rotation = unit.local_rotation
     local unit_world_position = unit.world_position
-    local unit_world_rotation = unit.world_rotation
-    local quaternion_multiply = quaternion.multiply
-    local quaternion_to_vector = quaternion.to_vector
     local physics_world_raycast = physics_world.raycast
-    local quaternion_from_vector = quaternion.from_vector
     local unit_set_local_position = unit.set_local_position
     local unit_set_local_rotation = unit.set_local_rotation
 --#endregion
@@ -46,8 +35,10 @@ local ScriptWorld = mod:original_require("scripts/foundation/utilities/script_wo
 -- #####  ││├─┤ │ ├─┤ #################################################################################################
 -- ##### ─┴┘┴ ┴ ┴ ┴ ┴ #################################################################################################
 
+local pt = mod:pt()
 local SLOT_PRIMARY = "slot_primary"
 local SLOT_SECONDARY = "slot_secondary"
+local PROCESS_SLOTS = {SLOT_PRIMARY, SLOT_SECONDARY}
 
 -- ##### ┌─┐┬  ┌─┐┌─┐┌─┐  ┌─┐─┐ ┬┌┬┐┌─┐┌┐┌┌─┐┬┌─┐┌┐┌ ##################################################################
 -- ##### │  │  ├─┤└─┐└─┐  ├┤ ┌┴┬┘ │ ├┤ │││└─┐││ ││││ ##################################################################
@@ -166,8 +157,6 @@ end)
 -- ##### └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘  ┴ ┴└─┘└─┘┴ ┴└─┘ ######################################################################
 
 mod:hook(CLASS.UIProfileSpawner, "init", function(func, self, reference_name, world, camera, unit_spawner, force_highest_lod_step, optional_mission_template, ...)
-    -- Set pt variable
-    -- self.pt = mod:pt()
     -- Original function
     func(self, reference_name, world, camera, unit_spawner, force_highest_lod_step, optional_mission_template, ...)
     -- Enable rotation input
@@ -209,6 +198,7 @@ mod:hook(CLASS.UIProfileSpawner, "cb_on_unit_3p_streaming_complete", function(fu
     end
     local character_spawn_data = self._character_spawn_data
     local equipment_component = character_spawn_data and character_spawn_data.equipment_component
+
     -- Update placement
     if self._placement_name and self._slot_name then
         -- local character_spawn_data = self._character_spawn_data
@@ -226,16 +216,46 @@ mod:hook(CLASS.UIProfileSpawner, "cb_on_unit_3p_streaming_complete", function(fu
         end
     end
 
+	-- if character_spawn_data then
+    --     local profile = character_spawn_data.profile
+	-- 	if not character_spawn_data.state_machine or string_find(character_spawn_data.state_machine, "end_of_round") then
+	-- 		if profile.visual_loadout and profile.visual_loadout[SLOT_SECONDARY] then
+	-- 			self:_change_slot_item(SLOT_SECONDARY, profile.visual_loadout[SLOT_SECONDARY], profile.loadout, profile.visual_loadout)
+	-- 		end
+	-- 		if profile.visual_loadout and profile.visual_loadout[SLOT_PRIMARY] then
+	-- 			self:_change_slot_item(SLOT_PRIMARY, profile.visual_loadout[SLOT_PRIMARY], profile.loadout, profile.visual_loadout)
+	-- 		end
+	-- 	end
+	-- end
+
+end)
+
+mod:hook(CLASS.UIProfileSpawner, "spawn_profile", function(func, self, profile, position, rotation, scale, state_machine_or_nil, animation_event_or_nil, face_state_machine_key_or_nil, face_animation_event_or_nil, force_highest_mip_or_nil, disable_hair_state_machine_or_nil, optional_unit_3p, optional_ignore_state_machine, companion_data, ...)
+    -- Unset ignore slots
+    -- So that the real equipped items are loaded
+    if self._placement_name and self._slot_name then
+        self._ignored_slots[SLOT_SECONDARY] = self._placement_name and self._slot_name ~= SLOT_SECONDARY or nil
+        self._ignored_slots[SLOT_PRIMARY] = self._placement_name and self._slot_name ~= SLOT_PRIMARY or nil
+    else
+        self._ignored_slots[SLOT_SECONDARY] = nil
+        self._ignored_slots[SLOT_PRIMARY] = nil
+    end
+    -- -- Replace equipment
+    -- profile.loadout[SLOT_PRIMARY] = profile.visual_loadout and profile.visual_loadout[SLOT_PRIMARY] or profile.loadout[SLOT_PRIMARY]
+    -- profile.loadout[SLOT_SECONDARY] = profile.visual_loadout and profile.visual_loadout[SLOT_SECONDARY] or profile.loadout[SLOT_SECONDARY]
+    -- Original function
+    func(self, profile, position, rotation, scale, state_machine_or_nil, animation_event_or_nil, face_state_machine_key_or_nil, face_animation_event_or_nil, force_highest_mip_or_nil, disable_hair_state_machine_or_nil, optional_unit_3p, optional_ignore_state_machine, companion_data, ...)
 end)
 
 mod:hook(CLASS.UIProfileSpawner, "_spawn_character_profile", function(func, self, profile, profile_loader, position, rotation, scale, state_machine, animation_event, face_state_machine_key, face_animation_event, force_highest_mip, disable_hair_state_machine, optional_unit_3p, optional_ignore_state_machine, companion_data, ...)
+
     -- Catch profile
     if self:valid_instance(profile) then
-        mod:pt().catch_unit = profile
+        pt.catch_unit = profile
     end
-    -- Ignore slots
-    self._ignored_slots[SLOT_SECONDARY] = nil
-    self._ignored_slots[SLOT_PRIMARY] = nil
+
+    local data = self._loading_profile_data or self._character_spawn_data
+    local profile = data and data.profile
 
     if self._placement_name and self._slot_name then
 
@@ -267,7 +287,7 @@ mod:hook(CLASS.UIProfileSpawner, "_spawn_character_profile", function(func, self
 end)
 
 mod:hook(CLASS.UIProfileSpawner, "_despawn_players_gear", function(func, self, ...)
-    -- local character_spawn_data = self._character_spawn_data
+    -- Destroy equipment component
 	if self._character_spawn_data then
 		local equipment_component = self._character_spawn_data.equipment_component
         if equipment_component then
@@ -293,7 +313,7 @@ mod:hook(CLASS.UIProfileSpawner, "_spawn_companion", function(func, self, unit_3
     -- Unlink companion
     world_unlink_unit(self._world, companion_unit_3p)
     unit_set_local_position(companion_unit_3p, 1, unit_world_position(unit_3p, 1) + vector3(-.55, .65, 0))
-    unit_set_local_rotation(companion_unit_3p, 1, quaternion_from_vector(vector3(0, 0, 160)))
+    unit_set_local_rotation(companion_unit_3p, 1, unit_local_rotation(unit_3p, 1))
     -- Return companion
     return companion_unit_3p
 end)

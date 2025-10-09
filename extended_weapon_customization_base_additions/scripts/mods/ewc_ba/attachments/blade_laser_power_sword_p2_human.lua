@@ -22,22 +22,22 @@ local _item_ranged = _item.."/ranged"
 local _item_melee = _item.."/melee"
 
 return {
-    laser_blade_combat_sword_p3_01 = {
-        replacement_path = _item_melee.."/blades/laser_blade_combat_sword_p3_01",
+    laser_blade_power_sword_p2_01 = {
+        replacement_path = _item_melee.."/blades/laser_blade_power_sword_p2_01",
         icon_render_unit_rotation_offset = {90, 30, 0},
         icon_render_camera_position_offset = {-.025, -2.5, .7},
         particle_effect_name = "content/fx/particles/enemies/sniper_laser_sight",
         impact_particle_effect_name = "content/fx/particles/weapons/grenades/flame_grenade_hostile_fire_lingering",
         custom_selection_group = "laser_blades_red",
         randomization_requirement = "mod_option_laser_blade_randomization",
-        laser_offset = vector3_box(0, 0, 0),
-        distortion_offset = vector3_box(0, 0, -.2),
-        distortion_size = vector3_box(1, 1.3, 1),
-        tip_size_1 = vector3_box(.25, .7015, .25),
-        tip_size_2 = vector3_box(.175, .7025, .175),
+        laser_offset = vector3_box(0, 0, -.625),
+        distortion_offset = vector3_box(0, 0, -.8),
+        distortion_size = vector3_box(1, 1, 1),
+        tip_size_1 = vector3_box(.25, .665, .25),
+        tip_size_2 = vector3_box(.175, .675, .175),
         fire_color = vector3_box(1, 0, 0),
-        fire_size = vector3_box(.35, .7, .35),
-        fire_node = 1,
+        fire_size = vector3_box(.3, .65, .3),
+        fire_node = 2,
         ui_item_init = function(world, attachment_unit, attachment_data, customization_item)
             laser_blade_functions.spawn_preview_blade(world, attachment_unit, attachment_data, customization_item)
         end,
@@ -67,22 +67,22 @@ return {
             laser_blade_functions.update_blade_visibility(attachment_callback_extension, attachment_slot_data, wielded_slot)
         end,
     },
-    laser_blade_combat_sword_p3_02 = {
-        replacement_path = _item_melee.."/blades/laser_blade_combat_sword_p3_02",
+    laser_blade_power_sword_p2_02 = {
+        replacement_path = _item_melee.."/blades/laser_blade_power_sword_p2_02",
         icon_render_unit_rotation_offset = {90, 30, 0},
         icon_render_camera_position_offset = {-.025, -2.5, .7},
         particle_effect_name = "content/fx/particles/enemies/sniper_laser_sight",
         impact_particle_effect_name = "content/fx/particles/weapons/grenades/flame_grenade_hostile_fire_lingering",
         custom_selection_group = "laser_blades_red",
         randomization_requirement = "mod_option_laser_blade_randomization",
-        laser_offset = vector3_box(0, 0, 0),
-        distortion_offset = vector3_box(0, 0, -.18),
-        distortion_size = vector3_box(1, 1.2, 1),
-        tip_size_1 = vector3_box(.25, .6015, .25),
-        tip_size_2 = vector3_box(.175, .6025, .175),
+        laser_offset = vector3_box(0, 0, -.625),
+        distortion_offset = vector3_box(0, 0, -.8),
+        distortion_size = vector3_box(1, 1, 1),
+        tip_size_1 = vector3_box(.25, .665, .25),
+        tip_size_2 = vector3_box(.175, .675, .175),
         fire_color = vector3_box(1, 0, 0),
-        fire_size = vector3_box(.35, .6, .35),
-        fire_node = 1,
+        fire_size = vector3_box(.3, .65, .3),
+        fire_node = 2,
         ui_item_init = function(world, attachment_unit, attachment_data, customization_item)
             laser_blade_functions.spawn_preview_blade(world, attachment_unit, attachment_data, customization_item)
         end,
@@ -112,22 +112,22 @@ return {
             laser_blade_functions.update_blade_visibility(attachment_callback_extension, attachment_slot_data, wielded_slot)
         end,
     },
-    laser_blade_green_combat_sword_p3_01 = {
-        replacement_path = _item_melee.."/blades/laser_blade_green_combat_sword_p3_01",
+    laser_blade_green_power_sword_p2_01 = {
+        replacement_path = _item_melee.."/blades/laser_blade_green_power_sword_p2_01",
         icon_render_unit_rotation_offset = {90, 30, 0},
         icon_render_camera_position_offset = {-.025, -2.5, .7},
         particle_effect_name = "content/fx/particles/enemies/plasma_gun_laser_sight",
         impact_particle_effect_name = "content/fx/particles/weapons/grenades/flame_grenade_hostile_fire_lingering_green",
         custom_selection_group = "laser_blades_green",
         randomization_requirement = "mod_option_laser_blade_randomization",
-        laser_offset = vector3_box(0, 0, 0),
-        distortion_offset = vector3_box(0, 0, -.2),
-        distortion_size = vector3_box(1, 1.3, 1),
-        tip_size_1 = vector3_box(.25, .7015, .25),
-        tip_size_2 = vector3_box(.175, .7025, .175),
+        laser_offset = vector3_box(0, 0, -.625),
+        distortion_offset = vector3_box(0, 0, -.8),
+        distortion_size = vector3_box(1, 1, 1),
+        tip_size_1 = vector3_box(.25, .665, .25),
+        tip_size_2 = vector3_box(.175, .675, .175),
         fire_color = vector3_box(0, 1, 0),
-        fire_size = vector3_box(.35, .7, .35),
-        fire_node = 1,
+        fire_size = vector3_box(.3, .65, .3),
+        fire_node = 2,
         ui_item_init = function(world, attachment_unit, attachment_data, customization_item)
             laser_blade_functions.spawn_preview_blade(world, attachment_unit, attachment_data, customization_item)
         end,
@@ -159,22 +159,22 @@ return {
             laser_blade_functions.update_blade_visibility(attachment_callback_extension, attachment_slot_data, wielded_slot)
         end,
     },
-    laser_blade_green_combat_sword_p3_02 = {
-        replacement_path = _item_melee.."/blades/laser_blade_green_combat_sword_p3_02",
+    laser_blade_green_power_sword_p2_02 = {
+        replacement_path = _item_melee.."/blades/laser_blade_green_power_sword_p2_02",
         icon_render_unit_rotation_offset = {90, 30, 0},
         icon_render_camera_position_offset = {-.025, -2.5, .7},
         particle_effect_name = "content/fx/particles/enemies/plasma_gun_laser_sight",
         impact_particle_effect_name = "content/fx/particles/weapons/grenades/flame_grenade_hostile_fire_lingering_green",
         custom_selection_group = "laser_blades_green",
         randomization_requirement = "mod_option_laser_blade_randomization",
-        laser_offset = vector3_box(0, 0, 0),
-        distortion_offset = vector3_box(0, 0, -.18),
-        distortion_size = vector3_box(1, 1.2, 1),
-        tip_size_1 = vector3_box(.25, .6015, .25),
-        tip_size_2 = vector3_box(.175, .6025, .175),
+        laser_offset = vector3_box(0, 0, -.625),
+        distortion_offset = vector3_box(0, 0, -.8),
+        distortion_size = vector3_box(1, 1, 1),
+        tip_size_1 = vector3_box(.25, .665, .25),
+        tip_size_2 = vector3_box(.175, .675, .175),
         fire_color = vector3_box(0, 1, 0),
-        fire_size = vector3_box(.35, .6, .35),
-        fire_node = 1,
+        fire_size = vector3_box(.3, .65, .3),
+        fire_node = 2,
         ui_item_init = function(world, attachment_unit, attachment_data, customization_item)
             laser_blade_functions.spawn_preview_blade(world, attachment_unit, attachment_data, customization_item)
         end,
