@@ -11,6 +11,8 @@ local master_items = mod:original_require("scripts/backend/master_items")
 -- ##### ┴  └─┘┴└─└  └─┘┴└─┴ ┴┴ ┴┘└┘└─┘└─┘ ############################################################################
 -- #region Performance
     local CLASS = CLASS
+    local tostring = tostring
+    local managers = Managers
 --#endregion
 
 -- ##### ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌  ┬ ┬┌─┐┌─┐┬┌─┌─┐ ######################################################################

@@ -89,7 +89,6 @@ mod:hook_require("scripts/managers/ui/ui_profile_spawner", function(instance)
         local placement_camera = mod.settings.placement_camera
         local item = profile and profile.loadout[slot_name]
         local gear_id = item and item.gear_id
-        -- local gear_id = mod:gear_id(item, true)
         -- Get placement
         local placement = self._placement_name or gear_id and mod:gear_placement(gear_id)
         -- Get offset
@@ -205,7 +204,6 @@ mod:hook(CLASS.UIProfileSpawner, "cb_on_unit_3p_streaming_complete", function(fu
         local profile = character_spawn_data and character_spawn_data.profile
         local item = profile and profile.loadout[self._slot_name]
         local gear_id = item and item.gear_id
-        -- local gear_id = mod:gear_id(item, true)
         mod:gear_placement(gear_id, self._placement_name)
     end
 
@@ -228,6 +226,14 @@ mod:hook(CLASS.UIProfileSpawner, "cb_on_unit_3p_streaming_complete", function(fu
 	-- 	end
 	-- end
 
+    -- if character_spawn_data then
+    --     local profile = character_spawn_data.profile
+
+    --     self:_change_slot_item(SLOT_SECONDARY, profile.visual_loadout and profile.visual_loadout[SLOT_SECONDARY] or profile.loadout[SLOT_SECONDARY], profile.loadout, profile.visual_loadout)
+
+    --     self:_change_slot_item(SLOT_PRIMARY, profile.visual_loadout and profile.visual_loadout[SLOT_PRIMARY] or profile.loadout[SLOT_PRIMARY], profile.loadout, profile.visual_loadout)
+    -- end
+
 end)
 
 mod:hook(CLASS.UIProfileSpawner, "spawn_profile", function(func, self, profile, position, rotation, scale, state_machine_or_nil, animation_event_or_nil, face_state_machine_key_or_nil, face_animation_event_or_nil, force_highest_mip_or_nil, disable_hair_state_machine_or_nil, optional_unit_3p, optional_ignore_state_machine, companion_data, ...)
@@ -240,9 +246,6 @@ mod:hook(CLASS.UIProfileSpawner, "spawn_profile", function(func, self, profile, 
         self._ignored_slots[SLOT_SECONDARY] = nil
         self._ignored_slots[SLOT_PRIMARY] = nil
     end
-    -- -- Replace equipment
-    -- profile.loadout[SLOT_PRIMARY] = profile.visual_loadout and profile.visual_loadout[SLOT_PRIMARY] or profile.loadout[SLOT_PRIMARY]
-    -- profile.loadout[SLOT_SECONDARY] = profile.visual_loadout and profile.visual_loadout[SLOT_SECONDARY] or profile.loadout[SLOT_SECONDARY]
     -- Original function
     func(self, profile, position, rotation, scale, state_machine_or_nil, animation_event_or_nil, face_state_machine_key_or_nil, face_animation_event_or_nil, force_highest_mip_or_nil, disable_hair_state_machine_or_nil, optional_unit_3p, optional_ignore_state_machine, companion_data, ...)
 end)
@@ -254,10 +257,10 @@ mod:hook(CLASS.UIProfileSpawner, "_spawn_character_profile", function(func, self
         pt.catch_unit = profile
     end
 
-    local data = self._loading_profile_data or self._character_spawn_data
-    local profile = data and data.profile
-
     if self._placement_name and self._slot_name then
+
+        local data = self._loading_profile_data or self._character_spawn_data
+        local profile = data and data.profile
 
         force_highest_mip = false
         self._force_highest_lod_step = false

@@ -88,6 +88,8 @@ local attachments = {
 
 attachments.autogun_p3_m2 = table_clone(attachments.autogun_p3_m1)
 attachments.autogun_p3_m3 = table_clone(attachments.autogun_p3_m1)
+attachments.high_bot_autogun_killshot = table_clone(attachments.autogun_p3_m1)
+attachments.bot_autogun_killshot = table_clone(attachments.autogun_p3_m1)
 
 local fixes = {
     autogun_p3_m1 = {
@@ -144,7 +146,6 @@ local fixes = {
                 },
             },
         },
-
         {attachment_slot = "muzzle",
             requirements = {
                 barrel = {
@@ -187,117 +188,6 @@ local fixes = {
                 },
             },
         },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_01|reflex_sight_02" },
-        --         receiver = { has = infantry_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0085) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = infantry_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0075) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_01|reflex_sight_02" },
-        --         receiver = { has = braced_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0085) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = braced_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0075) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_01|reflex_sight_02" },
-        --         receiver = { has = headhunter_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.011) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = headhunter_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0085) },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = {
-        --             has = scopes,
-        --         },
-        --         receiver = {
-        --             has = infantry_receivers,
-        --         }
-        --     },
-        --     fix = {
-        --         offset = {
-        --             position = vector3_box(0, -.05, -.036),
-        --             rotation = vector3_box(0, 0, 0),
-        --             custom_fov = 32.5,
-        --             aim_scale = .5,
-        --             fov = 25,
-        --         },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = {
-        --             has = scopes,
-        --         },
-        --         receiver = {
-        --             has = braced_receivers,
-        --         }
-        --     },
-        --     fix = {
-        --         offset = {
-        --             position = vector3_box(0, -.05, -.034),
-        --             rotation = vector3_box(0, 0, 0),
-        --             custom_fov = 32.5,
-        --             aim_scale = .5,
-        --             fov = 25,
-        --         },
-        --     },
-        -- },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = {
-        --             has = scopes,
-        --         },
-        --         receiver = {
-        --             has = headhunter_receivers,
-        --         }
-        --     },
-        --     fix = {
-        --         offset = {
-        --             position = vector3_box(0, -.05, -.036),
-        --             rotation = vector3_box(0, 0, 0),
-        --             custom_fov = 32.5,
-        --             aim_scale = .5,
-        --             fov = 25,
-        --         },
-        --     },
-        -- },
         {attachment_slot = "sight_offset",
             requirements = {
                 sight = { has = reflex_sights },
@@ -307,15 +197,6 @@ local fixes = {
                 offset = { position = vector3_box(0, 0, -.0085) },
             },
         },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = infantry_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0085) },
-        --     },
-        -- },
         {attachment_slot = "sight_offset",
             requirements = {
                 sight = { has = reflex_sights },
@@ -325,15 +206,6 @@ local fixes = {
                 offset = { position = vector3_box(0, 0, -.0085) },
             },
         },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = braced_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.0085) },
-        --     },
-        -- },
         {attachment_slot = "sight_offset",
             requirements = {
                 sight = { has = reflex_sights },
@@ -343,15 +215,6 @@ local fixes = {
                 offset = { position = vector3_box(0, 0, -.011) },
             },
         },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = { has = "reflex_sight_03" },
-        --         receiver = { has = headhunter_receivers },
-        --     },
-        --     fix = {
-        --         offset = { position = vector3_box(0, 0, -.011) },
-        --     },
-        -- },
         {attachment_slot = "sight_offset",
             requirements = {
                 sight = {
@@ -371,25 +234,6 @@ local fixes = {
                 },
             },
         },
-        -- {attachment_slot = "sight_offset",
-        --     requirements = {
-        --         sight = {
-        --             has = scopes,
-        --         },
-        --         receiver = {
-        --             has = braced_receivers,
-        --         }
-        --     },
-        --     fix = {
-        --         offset = {
-        --             position = vector3_box(0, -.05, -.034),
-        --             rotation = vector3_box(0, 0, 0),
-        --             custom_fov = 32.5,
-        --             aim_scale = .5,
-        --             fov = 25,
-        --         },
-        --     },
-        -- },
         {attachment_slot = "sight_offset",
             requirements = {
                 sight = {
@@ -583,6 +427,8 @@ local fixes = {
 
 fixes.autogun_p3_m2 = table_clone(fixes.autogun_p3_m1)
 fixes.autogun_p3_m3 = table_clone(fixes.autogun_p3_m1)
+fixes.high_bot_autogun_killshot = table_clone(fixes.autogun_p3_m1)
+fixes.bot_autogun_killshot = table_clone(fixes.autogun_p3_m1)
 
 local kitbashs = {}
 

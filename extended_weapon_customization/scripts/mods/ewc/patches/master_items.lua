@@ -7,12 +7,14 @@ local mod = get_mod("extended_weapon_customization")
     local log = Log
     local math = math
     local type = type
+    local CLASS = CLASS
     local cjson = cjson
     local table = table
     local pairs = pairs
     local string = string
     local rawget = rawget
     local rawset = rawset
+    local managers = Managers
     local tostring = tostring
     local math_uuid = math.uuid
     local log_error = log.error
@@ -254,6 +256,20 @@ mod.find_master_item_entries = function(self, identifications)
     end
 end
 
+mod.master_items_randomize_store = function(self, item, offer_id)
+    return mod:handle_store_item(item, offer_id)
+end
+
+-- Get cached player gear list from data service
+mod.player_gear_list = function(self)
+    -- Get data service
+    local data_service = managers and managers.data_service
+    -- Get gear service
+    local gear_data = data_service and data_service.gear
+    -- Return gear list
+    return gear_data and gear_data._cached_gear_list
+end
+
 -- ##### ┌─┐┬  ┌─┐┌─┐┌─┐  ┌─┐─┐ ┬┌┬┐┌─┐┌┐┌┌─┐┬┌─┐┌┐┌ ##################################################################
 -- ##### │  │  ├─┤└─┐└─┐  ├┤ ┌┴┬┘ │ ├┤ │││└─┐││ ││││ ##################################################################
 -- ##### └─┘┴─┘┴ ┴└─┘└─┘  └─┘┴ └─ ┴ └─┘┘└┘└─┘┴└─┘┘└┘ ##################################################################
@@ -438,7 +454,7 @@ mod:hook_require("scripts/backend/master_items", function(instance)
 
     mod:hook(instance, "get_item_instance", function(func, gear, gear_id, ...)
         local item_instance = func(gear, gear_id, ...)
-        return mod:gear_settings(gear_id) and mod:mod_item(gear_id, item_instance) or item_instance
+        return mod:gear_settings(gear_id) and (mod:husk_item(gear_id) or mod:mod_item(gear_id, item_instance)) or item_instance
     end)
 
     mod:hook(instance, "create_preview_item_instance", function(func, item, ...)
@@ -447,8 +463,8 @@ mod:hook_require("scripts/backend/master_items", function(instance)
         -- Fixes
         mod:apply_attachment_fixes(item)
 
-        -- Original function
-        local item_instance --= func(item, ...)
+        -- ##### Original function ####################################################################################
+        local item_instance
         local gear = table.clone_instance(item.__gear)
         local gear_id = item.__gear_id
     
@@ -459,10 +475,35 @@ mod:hook_require("scripts/backend/master_items", function(instance)
             -- local allow_modifications = true
             item_instance = instance.item_plus_overrides(gear, gear_id, true)
         end
+        -- ##### Original function ####################################################################################
+
         -- Relay gear id
         mod:gear_id_relay(item_instance.gear_id, item.gear_id)
         -- Return
         return item_instance
     end)
 
+    mod:hook(instance, "get_store_item_instance", function(func, description, ...)
+        local item_instance = func(description, ...)
+        local gear_id = mod:gear_id(item_instance)
+        local offer_id = pt.gear_id_to_offer_id[gear_id]
+        -- Return randomized
+        return mod:master_items_randomize_store(item_instance, offer_id)
+    end)
+
+end)
+
+mod:hook(CLASS.EndPlayerView, "_get_item", function(func, self, card_reward, ...)
+    local item, item_group, rarity, item_level = func(self, card_reward, ...)
+    if item and card_reward.gear_id and mod:get("mod_option_randomize_reward") then
+        -- Save gear id
+        item.gear_id = card_reward.gear_id
+        -- Randomize item
+        item = mod:master_items_randomize_store(item, card_reward.gear_id)
+        -- Get attachments
+        local random_attachments = mod:gear_settings(card_reward.gear_id)
+        -- Save to file
+        mod:gear_settings(card_reward.gear_id, random_attachments, true)
+    end
+    return item, item_group, rarity, item_level
 end)

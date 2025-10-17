@@ -81,15 +81,8 @@ mod.view_element_grid_inject_blueprint = function(self, view_element_grid, conte
         cosmetic_item_display_name_text_style.text_vertical_alignment = "center"
         cosmetic_item_display_name_text_style.horizontal_alignment = "left"
         cosmetic_item_display_name_text_style.vertical_alignment = "top"
-        cosmetic_item_display_name_text_style.offset = {
-            10,
-            0,
-            5,
-        }
-        cosmetic_item_display_name_text_style.size = {
-            grid_width - 20,
-            50,
-        }
+        cosmetic_item_display_name_text_style.offset = {10, 0, 5}
+        cosmetic_item_display_name_text_style.size = {grid_width - 20, 50}
 
         content_blueprints.cosmetic_gear_icon = {
             pass_template = {
@@ -296,7 +289,6 @@ mod.view_element_grid_valid_grid = function(self, view_element_grid)
     local parent = view_element_grid._parent
     local selected_slot = parent._selected_slot
     local slot_name = selected_slot and selected_slot.name
-    -- mod:echo(view_element_grid._element_view_id)
     return not parent.item_type and table_contains(PROCESSED_SLOTS, slot_name) and view_element_grid._element_view_id == INVENTORY_COSMETICS_VIEW
 end
 

@@ -77,11 +77,18 @@ mod:add_global_localize_strings({
 		en = "EWC:BA - 2H Power Sword",
 		["zh-cn"] = "扩展武器自定义：基础增补 - 双手动力剑",
 	},
+	loc_ewc_2h_force_sword = {
+		en = "EWC:BA - 2H Force Sword",
+	},
 	loc_ewc_shotgun_double_barrel = {
 		en = "EWC:BA - Double Barrel Shotgun",
 	},
 	loc_ewc_sight_show = {
 		en = "EWC:BA - Sight just for show",
+	},
+
+	attachment_slot_sight_2 = {
+		en = "Sight",
 	},
 
 	loc_scope_01 = {

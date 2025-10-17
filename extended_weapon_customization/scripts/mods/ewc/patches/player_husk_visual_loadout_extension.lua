@@ -6,16 +6,28 @@ local mod = get_mod("extended_weapon_customization")
 
 local NetworkLookup = mod:original_require("scripts/network_lookup/network_lookup")
 local Promise = mod:original_require("scripts/foundation/utilities/promise")
+local MasterItems = mod:original_require("scripts/backend/master_items")
 
 -- ##### ┌─┐┌─┐┬─┐┌─┐┌─┐┬─┐┌┬┐┌─┐┌┐┌┌─┐┌─┐ ############################################################################
 -- ##### ├─┘├┤ ├┬┘├┤ │ │├┬┘│││├─┤││││  ├┤  ############################################################################
 -- ##### ┴  └─┘┴└─└  └─┘┴└─┴ ┴┴ ┴┘└┘└─┘└─┘ ############################################################################
 -- #region Performance
+    local math = math
+    local unit = Unit
     local table = table
     local CLASS = CLASS
+    local string = string
+    local tostring = tostring
+    local managers = Managers
+    local math_uuid = math.uuid
     local script_unit = ScriptUnit
+    local string_find = string.find
     local table_contains = table.contains
+    local unit_sight_callback = unit.sight_callback
+    local table_clone_instance = table.clone_instance
     local script_unit_extension = script_unit.extension
+    local unit_attachment_callback = unit.attachment_callback
+    local unit_flashlight_callback = unit.flashlight_callback
     local script_unit_add_extension = script_unit.add_extension
     local script_unit_remove_extension = script_unit.remove_extension
 --#endregion
@@ -32,25 +44,16 @@ local PROCESS_SLOTS = {SLOT_PRIMARY, SLOT_SECONDARY}
 -- ##### ├┤ │ │││││   │ ││ ││││  ├─┤│ ││ │├┴┐└─┐ ######################################################################
 -- ##### └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘  ┴ ┴└─┘└─┘┴ ┴└─┘ ######################################################################
 
-mod.player_husk_visual_loadout_extension_randomize = function(self, player, item, slot_name) --, player, slot_name, visual_loadout)
-    -- local husk_item = mod:handle_husk_item(item, player)
-    -- if husk_item then
-    --     -- local player = player_husk_visual_loadout_extension._player
-    --     -- local profile = player:profile()
-    --     -- local visual_loadout = profile.visual_loadout
-    --     -- Set modded item in profile
-    --     -- visual_loadout[slot_name] = husk_item
-    --     -- Reevaluate packages
-    --     -- mod:print("reevaluate_packages "..tostring(player))
-    --     -- mod:reevaluate_packages(player)
-    -- end
-    -- return item
-    return mod:handle_husk_item(item, player)
+mod.player_husk_visual_loadout_extension_randomize = function(self, item)
+    return mod:handle_husk_item(item)
 end
 
 mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "init", function(func, self, extension_init_context, unit, extension_init_data, ...)
 
     local world = extension_init_context.world
+
+    -- Original function
+    func(self, extension_init_context, unit, extension_init_data, ...)
 
     if not script_unit_extension(unit, "sight_system") then
         script_unit_add_extension(
@@ -62,6 +65,7 @@ mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "init", function(func, self, ex
             "sight_system",
             {
                 visual_loadout_extension = self,
+                wielded_slot = self._wielded_slot,
             }
         )
     end
@@ -77,6 +81,7 @@ mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "init", function(func, self, ex
             {
                 visual_loadout_extension = self,
                 player = extension_init_data.player,
+                wielded_slot = self._wielded_slot,
             }
         )
     end
@@ -93,7 +98,7 @@ mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "init", function(func, self, ex
                 is_local_unit = false,
                 visual_loadout_extension = self,
                 player = extension_init_data.player,
-                -- from_ui_profile_spawner = self._equipment_component._from_ui_profile_spawner,
+                wielded_slot = self._wielded_slot,
             }
         )
     end
@@ -109,20 +114,14 @@ mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "init", function(func, self, ex
             {
                 visual_loadout_extension = self,
                 player = extension_init_data.player,
-                -- from_ui_profile_spawner = self._equipment_component._from_ui_profile_spawner,
+                wielded_slot = self._wielded_slot,
             }
         )
     end
 
-    -- Original function
-    func(self, extension_init_context, unit, extension_init_data, ...)
-
     self.flashlight_extension_update = true
     self.sight_extension_update = true
     self.attachment_callback_extension_update = true
-
-    -- Destroy mispredict handler
-    self._mispredict_package_handler = nil
 
 end)
 
@@ -159,36 +158,26 @@ mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "update", function(func, self, 
 
     if self.flashlight_extension_update then
         if self:is_slot_unit_spawned(SLOT_SECONDARY) then
-            local flashlight_extension = script_unit_extension(self._unit, "flashlight_system")
-            if flashlight_extension then
-                flashlight_extension:on_equip_weapon()
-            end
+            unit_flashlight_callback(self._unit, "on_equip_weapon")
             self.flashlight_extension_update = nil
         end
     end
 
     if self.sight_extension_update then
         if self:is_slot_unit_spawned(SLOT_SECONDARY) then
-            local sight_extension = script_unit_extension(self._unit, "sight_system")
-            if sight_extension then
-                sight_extension:on_equip_weapon()
-            end
+            unit_sight_callback(self._unit, "on_equip_weapon")
             self.sight_extension_update = nil
         end
     end
 
-    local attachment_callback_extension = script_unit_extension(self._unit, "attachment_callback_system")
-    if attachment_callback_extension then
-        
-        if self.attachment_callback_extension_update then
-            if self:is_slot_unit_spawned(SLOT_SECONDARY) and self:is_slot_unit_spawned(SLOT_PRIMARY) then
-                attachment_callback_extension:on_equip_weapon()
-                self.attachment_callback_extension_update = nil
-            end
+    if self.attachment_callback_extension_update then
+        if self:is_slot_unit_spawned(SLOT_SECONDARY) and self:is_slot_unit_spawned(SLOT_PRIMARY) then
+            unit_attachment_callback(self._unit, "on_equip_weapon")
+            self.attachment_callback_extension_update = nil
         end
-
-        attachment_callback_extension:update(dt, t)
     end
+
+    unit_attachment_callback(self._unit, "update", dt, t)
     
 end)
 
@@ -217,15 +206,22 @@ end)
 mod:hook(CLASS.PlayerHuskVisualLoadoutExtension, "rpc_player_equip_item_from_profile_to_slot", function(func, self, channel_id, go_id, slot_id, debug_item_id, ...)
 
     local slot_name = NetworkLookup.player_inventory_slot_names[slot_id]
-	local player = self._player
-	local profile = player:profile()
-	local visual_loadout = profile.visual_loadout
-	local item = visual_loadout[slot_name]
+    local player = self._player
+    local profile = player:profile()
+    local item = profile.visual_loadout[slot_name]
+    local optional_existing_unit_3p
 
-    -- Randomize weapon for other player
-    -- item = 
-    mod:player_husk_visual_loadout_extension_randomize(player, item, slot_name)
+    if table_contains(PROCESS_SLOTS, slot_name) and item then
+        -- Randomize weapon for other player
+        mod:print("rpc_player_equip_item_from_profile_to_slot player "..tostring(player:name()).." slot "..tostring(slot_name))
+        mod:print("rpc_player_equip_item_from_profile_to_slot item"..tostring(item.name).." gear_id "..tostring(mod:gear_id(item)))
+        -- Replace visual loadout
+        profile.visual_loadout[slot_name] = mod:player_husk_visual_loadout_extension_randomize(item)
+        -- Reevaluate packages
+        mod:print("reevaluate_packages "..tostring(player))
+        mod:reevaluate_packages(player)
+    end
 
-	self:_equip_item_to_slot(slot_name, item)
+	self:_equip_item_to_slot(slot_name, item, optional_existing_unit_3p)
 
 end)

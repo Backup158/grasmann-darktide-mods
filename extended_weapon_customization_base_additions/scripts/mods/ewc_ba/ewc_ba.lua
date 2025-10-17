@@ -4,6 +4,7 @@ local mod = get_mod("extended_weapon_customization_base_additions")
 -- ##### ├─┘├┤ ├┬┘├┤ │ │├┬┘│││├─┤││││  ├┤  ############################################################################
 -- ##### ┴  └─┘┴└─└  └─┘┴└─┴ ┴┴ ┴┘└┘└─┘└─┘ ############################################################################
 -- #region Performance
+    local CLASS = CLASS
     local pairs = pairs
     local table = table
     local managers = Managers
@@ -12,11 +13,25 @@ local mod = get_mod("extended_weapon_customization_base_additions")
     local table_merge_recursive = table.merge_recursive
 --#endregion
 
+-- ##### ┌┬┐┌─┐┌┬┐┌─┐ #################################################################################################
+-- #####  ││├─┤ │ ├─┤ #################################################################################################
+-- ##### ─┴┘┴ ┴ ┴ ┴ ┴ #################################################################################################
+
+local REFERENCE = "extended_weapon_customization_base_additions"
+
+mod:persistent_table(REFERENCE, {})
+
 mod:io_dofile("extended_weapon_customization_base_additions/scripts/mods/ewc_ba/extensions/common")
 
 -- ##### ┌─┐┬ ┬┌┐┌┌─┐┌┬┐┬┌─┐┌┐┌┌─┐ ####################################################################################
 -- ##### ├┤ │ │││││   │ ││ ││││└─┐ ####################################################################################
 -- ##### └  └─┘┘└┘└─┘ ┴ ┴└─┘┘└┘└─┘ ####################################################################################
+
+mod.pt = function(self)
+    return self:persistent_table(REFERENCE)
+end
+
+local pt = mod:pt()
 
 mod.get_view = function(self, view_name)
     local ui_manager = managers.ui
@@ -38,6 +53,15 @@ mod.merge_attachment_data = function(self, merge_attachment_data, ...)
     end
 end
 
+mod.is_cutscene_active = function (self)
+	local extension_manager = managers.state.extension
+	local cinematic_scene_system = extension_manager:system("cinematic_scene_system")
+	local cinematic_scene_system_active = cinematic_scene_system:is_active()
+	local cinematic_manager = managers.state.cinematic
+	local cinematic_manager_active = cinematic_manager:cinematic_active()
+	return cinematic_scene_system_active or cinematic_manager_active
+end
+
 -- ##### ┌┬┐┌─┐┌┬┐┌─┐ #################################################################################################
 -- #####  ││├─┤ │ ├─┤ #################################################################################################
 -- ##### ─┴┘┴ ┴ ┴ ┴ ┴ #################################################################################################
@@ -45,12 +69,14 @@ end
 local _item = "content/items/weapons/player"
 local _item_ranged = _item.."/ranged"
 local _item_melee = _item.."/melee"
+local _empty_item = "content/items/weapons/player/trinkets/unused_trinket"
 
 local extended_weapon_customization_plugin = {
     attachments = {},
     attachment_slots = {},
     fixes = {},
     kitbashs = {
+        -- ##### Scopes ###############################################################################################
         [_item_ranged.."/lenses/lense_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -145,7 +171,28 @@ local extended_weapon_customization_plugin = {
             is_full_item = true,
         },
         [_item_ranged.."/sights/scope_01"] = {
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/characters/empty_item/empty_item",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            attach_node = "ap_sight_01",
+            resource_dependencies = {
+                ["content/characters/empty_item/empty_item"] = true,
+                ["content/weapons/player/attachments/sights/sight_reflex_03/sight_reflex_03"] = true,
+                ["content/weapons/player/ranged/lasgun_rifle_krieg/attachments/muzzle_02/muzzle_02"] = true,
+                ["content/weapons/player/ranged/rippergun_rifle/ammunition/ammunition_01/ammunition_01"] = true,
+            },
             attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
                 base = {
                     item = _item_ranged.."/sights/reflex_sight_03",
                     fix = {
@@ -194,13 +241,74 @@ local extended_weapon_customization_plugin = {
                     },
                 },
             },
-            attach_node = "ap_sight_01",
+            workflow_checklist = {
+            },
             display_name = "loc_scope_01",
-            description = "loc_description_scope_01",
-            dev_name = "loc_scope_01",
+            name = _item_ranged.."/sights/scope_01",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
             disable_vfx_spawner_exclusion = true,
         },
-
+        -- ##### Invisible sights #####################################################################################
+        [_item_ranged.."/sights/shotgun_rifle_sight_invisible_01"] = {
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/characters/empty_item/empty_item",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            attach_node = "ap_sight_01",
+            resource_dependencies = {
+                ["content/characters/empty_item/empty_item"] = true,
+            },
+            attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
+            },
+            workflow_checklist = {
+            },
+            display_name = "loc_shotgun_rifle_sight_invisible_01",
+            name = _item_ranged.."/sights/shotgun_rifle_sight_invisible_01",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
+            disable_vfx_spawner_exclusion = true,
+        },
+        [_item_ranged.."/sights/shotgun_double_barrel_sight_invisible_01"] = {
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/characters/empty_item/empty_item",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            attach_node = "ap_sight_01",
+            resource_dependencies = {
+                ["content/characters/empty_item/empty_item"] = true,
+            },
+            attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
+            },
+            workflow_checklist = {
+            },
+            display_name = "loc_shotgun_double_barrel_sight_invisible_01",
+            name = _item_ranged.."/sights/shotgun_double_barrel_sight_invisible_01",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
+            disable_vfx_spawner_exclusion = true,
+        },
+        -- ##### Fake Sights ##########################################################################################
         [_item_ranged.."/sights/reflex_sight_show_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -287,6 +395,10 @@ local extended_weapon_customization_plugin = {
         },
         [_item_ranged.."/sights/scope_show_01"] = {
             attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
                 base = {
                     item = _item_ranged.."/sights/reflex_sight_03",
                     fix = {
@@ -339,11 +451,36 @@ local extended_weapon_customization_plugin = {
             display_name = "loc_scope_show_01",
             description = "loc_description_scope_show_01",
             dev_name = "loc_scope_show_01",
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/characters/empty_item/empty_item",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            resource_dependencies = {
+                ["content/characters/empty_item/empty_item"] = true,
+                ["content/weapons/player/attachments/sights/sight_reflex_03/sight_reflex_03"] = true,
+                ["content/weapons/player/ranged/lasgun_rifle_krieg/attachments/muzzle_02/muzzle_02"] = true,
+                ["content/weapons/player/ranged/rippergun_rifle/ammunition/ammunition_01/ammunition_01"] = true,
+            },
+            workflow_checklist = {
+            },
+            name = _item_ranged.."/sights/scope_show_01",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
             disable_vfx_spawner_exclusion = true,
         },
-
+        -- ##### Invisible Flashlights ################################################################################
         [_item_ranged.."/flashlights/invisible_flashlight"] = {
             attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
                 flashlight = {
                     item = _item_ranged.."/flashlights/flashlight_01",
                     fix = {
@@ -361,10 +498,32 @@ local extended_weapon_customization_plugin = {
             description = "loc_description_invisible_flashlight",
             attach_node = "ap_flashlight_01",
             dev_name = "invisible_flashlight",
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/weapons/player/attachments/flashlights/flashlight_01/flashlight_01",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            resource_dependencies = {
+                ["content/weapons/player/attachments/flashlights/flashlight_01/flashlight_01"] = true,
+            },
+            workflow_checklist = {
+            },
+            name = _item_ranged.."/flashlights/invisible_flashlight",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
             disable_vfx_spawner_exclusion = true,
         },
         [_item_ranged.."/flashlights/invisible_flashlight_ogryn"] = {
             attachments = {
+                zzz_shared_material_overrides = {
+                    item = "",
+                    children = {},
+                },
                 flashlight = {
                     item = _item_ranged.."/flashlights/flashlight_ogryn_01",
                     fix = {
@@ -382,9 +541,27 @@ local extended_weapon_customization_plugin = {
             description = "loc_description_invisible_flashlight_ogryn",
             attach_node = "ap_flashlight_01",
             dev_name = "invisible_flashlight_ogryn",
+            is_fallback_item = false,
+            show_in_1p = true,
+            base_unit = "content/weapons/player/attachments/flashlights/flashlight_ogryn_01/flashlight_ogryn_01",
+            item_list_faction = "Player",
+            tags = {
+            },
+            only_show_in_1p = false,
+            feature_flags = {
+                "FEATURE_item_retained",
+            },
+            resource_dependencies = {
+                ["content/weapons/player/attachments/flashlights/flashlight_ogryn_01/flashlight_ogryn_01"] = true,
+            },
+            workflow_checklist = {
+            },
+            name = _item_ranged.."/flashlights/invisible_flashlight_ogryn",
+            workflow_state = "RELEASABLE",
+            is_full_item = true,
             disable_vfx_spawner_exclusion = true,
         },
-
+        -- ##### Red Laser Pointers ###################################################################################
         [_item_ranged.."/laser_pointers/laser_pointer_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -497,6 +674,7 @@ local extended_weapon_customization_plugin = {
             workflow_state = "RELEASABLE",
             is_full_item = true,
         },
+        -- ##### Green Laser Pointers #################################################################################
         [_item_ranged.."/laser_pointers/laser_pointer_green_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -609,6 +787,7 @@ local extended_weapon_customization_plugin = {
             workflow_state = "RELEASABLE",
             is_full_item = true,
         },
+        -- ##### Red Ogryn Laser Pointers #############################################################################
         [_item_ranged.."/laser_pointers/laser_pointer_ogryn_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -665,6 +844,7 @@ local extended_weapon_customization_plugin = {
             workflow_state = "RELEASABLE",
             is_full_item = true,
         },
+        -- ##### Green Ogryn Laser Pointers ###########################################################################
         [_item_ranged.."/laser_pointers/laser_pointer_ogryn_green_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -721,7 +901,7 @@ local extended_weapon_customization_plugin = {
             workflow_state = "RELEASABLE",
             is_full_item = true,
         },
-
+        -- ##### Laser Blade Tanks ####################################################################################
         [_item_melee.."/tanks/laser_blade_tank_01"] = {
             is_fallback_item = false,
             show_in_1p = true,
@@ -780,6 +960,7 @@ local extended_weapon_customization_plugin = {
         },
     },
     flashlight_templates = {
+        -- ##### Red Laser Pointers ###################################################################################
         laser_pointer_01 = {
             light = {
                 first_person = {
@@ -940,6 +1121,7 @@ local extended_weapon_customization_plugin = {
             },
             flicker = "incandescent_flicker",
         },
+        -- ##### Green Laser Pointers #################################################################################
         laser_pointer_green_01 = {
             light = {
                 first_person = {
@@ -1100,6 +1282,7 @@ local extended_weapon_customization_plugin = {
             },
             flicker = "incandescent_flicker",
         },
+        -- ##### Red Ogryn Laser Pointers #############################################################################
         laser_pointer_ogryn_01 = {
             light = {
                 first_person = {
@@ -1178,6 +1361,7 @@ local extended_weapon_customization_plugin = {
             },
             flicker = "worn_incandescent_flicker",
         },
+        -- ##### Green Ogryn Laser Pointers ###########################################################################
         laser_pointer_ogryn_green_01 = {
             light = {
                 first_person = {
@@ -1273,7 +1457,6 @@ local extended_weapon_customization_plugin = {
         ["wwise/events/weapon/play_flametrower_alt_fire_on"] = true,
         ["wwise/events/weapon/play_flamethrower_interrupt"] = true,
         ["wwise/events/weapon/play_shockmaul_1h_p2_swing"] = true,
-        
     },
 }
 
@@ -1281,12 +1464,17 @@ local weapons_folder = "extended_weapon_customization_base_additions/scripts/mod
 local load_weapons = {
     "ogryn_heavystubber_p1_m1",
     "ogryn_heavystubber_p2_m1",
+    "ogryn_rippergun_p1_m1",
+    "ogryn_gauntlet_p1_m1",
+    "ogryn_thumper_p1_m1",
     "forcesword_2h_p1_m1",
     "powersword_2h_p1_m1",
     "stubrevolver_p1_m1",
     "combatsword_p1_m1",
     "combatsword_p2_m1",
     "combatsword_p3_m1",
+    "combatknife_p1_m1",
+    "forcesword_p1_m1",
     "powersword_p1_m1",
     "powersword_p2_m1",
     "boltpistol_p1_m1",
@@ -1296,6 +1484,8 @@ local load_weapons = {
     "autogun_p1_m1",
     "autogun_p2_m1",
     "autogun_p3_m1",
+    "shotgun_p1_m1",
+    "shotgun_p2_m1",
     "shotgun_p4_m1",
     "bolter_p1_m1",
     "flamer_p1_m1",
